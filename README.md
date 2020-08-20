@@ -11,6 +11,9 @@ Agents.
 This setup works well with a Consul Cluster deployed via the official
 [HashiCorp Consul Helm Chart](https://github.com/hashicorp/consul-helm).
 
+This is an alternative to an [issue](https://github.com/hashicorp/consul-k8s/issues/313) filed with
+`consul-k8s`.
+
 ## Docker Image
 
 The docker image located in `docker/` is basically just Consul Template with `kubectl` installled.
