@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "consul-autoencrypt-k8s.fullname" . }}
+  labels:
+    {{- include "consul-autoencrypt-k8s.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "consul-autoencrypt-k8s.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "consul-autoencrypt-k8s.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "consul-autoencrypt-k8s.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: get-auto-encrypt-client-ca
+          image: {{ .Values.consul.consulK8SImage }}
+          command:
+            - "/bin/sh"
+            - "-ec"
+            - |
+              consul-k8s get-consul-client-ca \
+                -output-file=/output/connect.pem \
+                {{- if .Values.consul.server.caCert }}
+                -ca-file=/config/server.pem \
+                {{- end }}
+                {{- if .Values.consul.server.serverName }}
+                -tls-server-name={{ .Values.consul.server.serverName }} \
+                {{- end }}
+                -server-addr={{ .Values.consul.server.address }} \
+                -server-port=8501
+          volumeMounts:
+            - name: output
+              mountPath: /output
+            - name: config
+              mountPath: /config
+              readOnly: true
+          resources:
+            requests:
+              memory: "25Mi"
+              cpu: "50m"
+            limits:
+              memory: "25Mi"
+              cpu: "50m"
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: "HOST_IP"
+              valueFrom:
+                fieldRef:
+                  fieldPath: "status.hostIP"
+          command:
+            - "/bin/consul-template"
+          args:
+            - "-consul-addr=$(HOST_IP):8501"
+            - "-config=/config/consul_template.hcl"
+          livenessProbe:
+            exec:
+              command:
+              - cat
+              - /output/out.yaml
+            initialDelaySeconds: 30
+          volumeMounts:
+            - name: output
+              mountPath: /output
+            - name: config
+              mountPath: /config
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: output
+          emptyDir:
+            medium: "Memory"
+        - name: config
+          configMap:
+            name: {{ include "consul-autoencrypt-k8s.fullname" . }}

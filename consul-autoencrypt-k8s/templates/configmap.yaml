@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "consul-autoencrypt-k8s.fullname" . }}
+  labels:
+    {{- include "consul-autoencrypt-k8s.labels" . | nindent 4 }}
+data:
+  consul_template.hcl: |
+    log_level = "debug"
+    kill_signal = "SIGTERM"
+
+    consul {
+      ssl {
+        enabled = true
+
+        ca_cert = "/output/connect.pem"
+      }
+    }
+
+    template {
+      source = "/config/template.yaml"
+      destination = "/output/out.yaml"
+
+      left_delimiter = "<<"
+      right_delimiter = ">>"
+
+      command = "kubectl apply -f /output/out.yaml"
+    }
+
+    template {
+      destination = "/output/connect.pem"
+      left_delimiter = "<<"
+      right_delimiter = ">>"
+      contents = "<< range caRoots >><< .RootCertPEM >><< end >>"
+    }
+
+  {{- if .Values.consul.server.caCert }}
+  server.pem: {{ .Values.consul.server.caCert | quote }}
+  {{- end }}
+
+  template.yaml: |
+    <<- range ( {{ .Values.consul.configMaps.namespaces | join "," | quote }} | split "," ) >>
+    ---
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: {{ .Values.consul.configMaps.name }}
+      {{- with .Values.consul.configMaps.labels }}
+      labels:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.consul.configMaps.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      namespace: << . | trimSpace >>
+    data:
+      cacert.pem: |
+    << range caRoots >><< .RootCertPEM | indent 4 >><< end >>
+    <<- end >>

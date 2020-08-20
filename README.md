@@ -21,3 +21,17 @@ It is pushed to
 ## Helm Chart
 
 The "official" way to install this deployment is via the Helm Chart.
+
+Note: Uninstalling the Helm chart will not clean up the `ConfigMap`s created. It is recommended
+that you set `.Values.consul.configMaps.labels` with something unique and then you can discover all
+the ConfigMaps to delete.
+
+Using the default value
+
+```bash
+# List ConfigMaps
+kubectl get configmaps -l app="consul-connect-ca" --all-namespaces
+
+# Delete ConfigMaps
+kubectl delete configmaps -l app="consul-connect-ca" --all-namespaces
+```

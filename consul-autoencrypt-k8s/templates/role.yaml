@@ -1,0 +1,21 @@
+{{- range .Values.consul.configMaps.namespaces }}
+{{- $rangeItem := . -}}
+{{- with $ }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "consul-autoencrypt-k8s.fullname" . }}
+  labels:
+    {{- include "consul-autoencrypt-k8s.labels" . | nindent 4 }}
+  namespace: {{ $rangeItem }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: [{{ .Values.consul.configMaps.name | quote }}]
+    verbs: ["update", "get", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+{{- end }}
+{{- end }}
