@@ -25,6 +25,7 @@ spec:
       serviceAccountName: {{ include "consul-autoencrypt-k8s.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if (and .Values.consul.tls.enabled .Values.consul.tls.autoEncrypt) }}
       initContainers:
         - name: get-auto-encrypt-client-ca
           image: {{ .Values.consul.consulK8SImage }}
@@ -41,7 +42,11 @@ spec:
                 -tls-server-name={{ .Values.consul.server.serverName }} \
                 {{- end }}
                 -server-addr={{ .Values.consul.server.address }} \
+                {{- if .Values.consul.tls.enabled }}
                 -server-port=8501
+                {{- else }}
+                -server-port=8500
+                {{- end }}
           volumeMounts:
             - name: output
               mountPath: /output
@@ -55,6 +60,7 @@ spec:
             limits:
               memory: "25Mi"
               cpu: "50m"
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -69,7 +75,11 @@ spec:
           command:
             - "/bin/consul-template"
           args:
+            {{- if .Values.consul.tls.enabled }}
             - "-consul-addr=$(HOST_IP):8501"
+            {{- else }}
+            - "-consul-addr=$(HOST_IP):8500"
+            {{- end }}
             - "-config=/config/consul_template.hcl"
           livenessProbe:
             exec:
