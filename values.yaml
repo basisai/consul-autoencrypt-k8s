@@ -56,6 +56,11 @@ affinity: {}
 
 consul:
   consulK8SImage: hashicorp/consul-k8s:0.18.1
+  tls:
+    # TLS is enabled for server and agents
+    enabled: true
+    # AutoEncrypt is used for Agent certificates
+    autoEncrypt: true
   server:
     # Address for Consul Server
     address: consul-server

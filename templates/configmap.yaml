@@ -10,11 +10,17 @@ data:
     kill_signal = "SIGTERM"
 
     consul {
+      {{- if .Values.consul.tls.enabled }}
       ssl {
         enabled = true
 
+        {{- if .Values.consul.tls.autoEncrypt }}
         ca_cert = "/output/connect.pem"
+        {{- else if .Values.consul.server.caCert }}
+        ca_cert = "/config/server.pem"
+        {{- end }}
       }
+      {{- end }}
     }
 
     template {
