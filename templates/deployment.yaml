@@ -42,7 +42,11 @@ spec:
                 -tls-server-name={{ .Values.consul.server.serverName }} \
                 {{- end }}
                 -server-addr={{ .Values.consul.server.address }} \
+                {{- if .Values.consul.tls.enabled }}
                 -server-port=8501
+                {{- else }}
+                -server-port=8500
+                {{- end }}
           volumeMounts:
             - name: output
               mountPath: /output
