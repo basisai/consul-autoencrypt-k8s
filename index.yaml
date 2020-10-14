@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  consul-autoencrypt-k8s:
+  - apiVersion: v2
+    appVersion: 0.25.1
+    created: "2020-10-14T03:19:33.770773652Z"
+    description: A Helm chart for Kubernetes
+    digest: 1b7579ea522c4eaeb50cdd5cfcacd0ffa775379b29ce8f68fcd7027838618b75
+    name: consul-autoencrypt-k8s
+    type: application
+    urls:
+    - https://github.com/basisai/consul-autoencrypt-k8s/releases/download/consul-autoencrypt-k8s-0.2.0/consul-autoencrypt-k8s-0.2.0.tgz
+    version: 0.2.0
+generated: "2020-10-14T03:19:33.640431987Z"
