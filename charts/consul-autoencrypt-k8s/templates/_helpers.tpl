@@ -60,3 +60,32 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "creation_test" }}
+#!/bin/sh
+
+success="false"
+n=0
+until [ "$n" -ge 5 ]
+do
+  echo "Checking namespaces..." \
+    {{- range .Values.consul.configMaps.namespaces }}
+    && echo "Checking {{ . }}..." \
+    && kubectl -n {{ . | quote }} get configmap {{ $.Values.consul.configMaps.name | quote }} > /dev/null \
+    {{- end }}
+    && echo "All created" \
+    && success="true" \
+    && break
+
+  echo "Not created. Waiting..."
+  n=$((n+1))
+  sleep 15
+done
+
+if [ "$success" = "false" ]; then
+  echo "Failed"
+  exit 1
+fi
+
+echo "Done"
+{{- end }}
