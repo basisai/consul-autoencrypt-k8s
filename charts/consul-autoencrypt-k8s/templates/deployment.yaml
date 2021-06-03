@@ -86,7 +86,9 @@ spec:
               command:
               - cat
               - /output/out.yaml
-            initialDelaySeconds: 30
+            periodSeconds: {{ .Values.probe.periodSeconds }}
+            initialDelaySeconds: {{ .Values.probe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.probe.timeoutSeconds }}
           volumeMounts:
             - name: output
               mountPath: /output

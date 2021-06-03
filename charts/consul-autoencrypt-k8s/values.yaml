@@ -54,6 +54,11 @@ tolerations: []
 
 affinity: {}
 
+probe:
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+
 consul:
   consulK8SImage: hashicorp/consul-k8s:0.18.1
   tls:
