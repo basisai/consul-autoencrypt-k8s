@@ -60,7 +60,7 @@ probe:
   timeoutSeconds: 5
 
 consul:
-  consulK8SImage: hashicorp/consul-k8s:0.18.1
+  consulK8SImage: hashicorp/consul-k8s:0.26.0
   tls:
     # TLS is enabled for server and agents
     enabled: true
