@@ -33,7 +33,7 @@ spec:
             - "/bin/sh"
             - "-ec"
             - |
-              consul-k8s get-consul-client-ca \
+              consul-k8s-control-plane get-consul-client-ca \
                 -output-file=/output/connect.pem \
                 {{- if .Values.consul.server.caCert }}
                 -ca-file=/config/server.pem \
